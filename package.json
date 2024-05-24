@@ -3,13 +3,20 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "index": "node ./src/index.mjs"
+    "index": "node ./src/index.mjs",
+    "lint": "npx @biomejs/biome lint --apply ./src",
+    "format": "npx @biomejs/biome format --write ./src",
+    "check": "npx @biomejs/biome check --apply ./src"
   },
   "dependencies": {
-    "googleapis": "131.0.0",
+    "@googleapis/searchconsole": "^1.0.5",
+    "googleapis": "^137.1.0",
     "sitemapper": "3.2.8"
   },
   "prettier": {
     "printWidth": 120
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.7.3"
   }
 }
