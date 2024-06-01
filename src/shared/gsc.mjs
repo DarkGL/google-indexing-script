@@ -112,11 +112,25 @@ export async function requestIndexing(accessToken, url) {
     if (response.status === 403) {
         console.error(`🔐 This service account doesn't have access to this site.`);
         console.error(`Response was: ${response.status}`);
+
+        return false;
     }
 
     if (response.status >= 300) {
+        const responseDecoded = await response.text();
+
         console.error('❌ Failed to request indexing.');
         console.error(`Response was: ${response.status}`);
-        console.error(await response.text());
+        console.error(responseDecoded);
+
+        if(responseDecoded.includes('RESOURCE_EXHAUSTED')) {
+            console.error('💡 This is a rate limit error.');
+
+            process.exit(0);
+        }
+
+        return false;
     }
+
+    return true;
 }
