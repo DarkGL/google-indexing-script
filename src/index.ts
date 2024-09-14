@@ -131,6 +131,8 @@ export const index = async (input: string = process.argv[2], options: IndexOptio
         return shouldIndexIt && isOld;
     };
 
+    mkdirSync('.cache', { recursive: true });
+
     await batch(
         async (url) => {
             let result = statusPerUrl[url];
@@ -143,6 +145,26 @@ export const index = async (input: string = process.argv[2], options: IndexOptio
             pagesPerStatus[result.status] = pagesPerStatus[result.status]
                 ? [...pagesPerStatus[result.status], url]
                 : [url];
+            
+            writeFileSync(cachePath, JSON.stringify(statusPerUrl, null, 2));
+            
+            if (indexableStatuses.includes(result.status)) {
+                console.log(`📄 Processing url: ${url}`);
+                const status = await getPublishMetadata(accessToken, url, {
+                    retriesOnRateLimit: options?.quota?.rpmRetry ? QUOTA.rpm.retries : 0,
+                });
+                if (status === 404) {
+                    await requestIndexing(accessToken, url);
+                    console.log(
+                        '🚀 Indexing requested successfully. It may take a few days for Google to process it.',
+                    );
+                } else if (status < 400) {
+                    console.log(
+                        '🕛 Indexing already requested previously. It may take a few days for Google to process it.',
+                    );
+                }
+                console.log('');
+            }
         },
         pages,
         50,
@@ -151,50 +173,7 @@ export const index = async (input: string = process.argv[2], options: IndexOptio
         },
     );
 
-    console.log('');
-    console.log(`👍 Done, here's the status of all ${pages.length} pages:`);
-    mkdirSync('.cache', { recursive: true });
-    writeFileSync(cachePath, JSON.stringify(statusPerUrl, null, 2));
-
-    for (const status of Object.keys(pagesPerStatus)) {
-        const pages = pagesPerStatus[status as Status];
-        if (pages.length === 0) continue;
-        console.log(`• ${getEmojiForStatus(status as Status)} ${status}: ${pages.length} pages`);
-    }
-    console.log('');
-
-    const indexablePages = Object.entries(pagesPerStatus).flatMap(([status, pages]) =>
-        indexableStatuses.includes(status as Status) ? pages : [],
-    );
-
-    if (indexablePages.length === 0) {
-        console.log('✨ There are no pages that can be indexed. Everything is already indexed!');
-    } else {
-        console.log(`✨ Found ${indexablePages.length} pages that can be indexed.`);
-        indexablePages.forEach((url) => console.log(`• ${url}`));
-    }
-    console.log('');
-
-    for (const url of indexablePages) {
-        console.log(`📄 Processing url: ${url}`);
-        const status = await getPublishMetadata(accessToken, url, {
-            retriesOnRateLimit: options.quota.rpmRetry ? QUOTA.rpm.retries : 0,
-        });
-        if (status === 404) {
-            await requestIndexing(accessToken, url);
-            console.log(
-                '🚀 Indexing requested successfully. It may take a few days for Google to process it.',
-            );
-        } else if (status < 400) {
-            console.log(
-                '🕛 Indexing already requested previously. It may take a few days for Google to process it.',
-            );
-        }
-        console.log('');
-    }
-
     console.log('👍 All done!');
-    console.log('💖 Brought to you by https://seogets.com - SEO Analytics.');
     console.log('');
 };
 
