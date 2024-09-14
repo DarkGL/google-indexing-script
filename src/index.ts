@@ -147,6 +147,8 @@ export const index = async (input: string = process.argv[2], options: IndexOptio
                 : [url];
             
             writeFileSync(cachePath, JSON.stringify(statusPerUrl, null, 2));
+
+            console.log(`• ${getEmojiForStatus(result.status as Status)} ${url}`);
             
             if (indexableStatuses.includes(result.status)) {
                 console.log(`📄 Processing url: ${url}`);
@@ -167,11 +169,13 @@ export const index = async (input: string = process.argv[2], options: IndexOptio
             }
         },
         pages,
-        50,
+        10,
         (batchIndex, batchCount) => {
             console.log(`📦 Batch ${batchIndex + 1} of ${batchCount} complete`);
         },
     );
+
+    writeFileSync(cachePath, JSON.stringify(statusPerUrl, null, 2));
 
     console.log('👍 All done!');
     console.log('');
