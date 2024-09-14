@@ -3,3 +3,5 @@ service_account.json
 node_modules
 .vscode
 dist
+
+start.sh

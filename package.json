@@ -25,7 +25,10 @@
     "dev": "tsup --watch",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "lint": "npx @biomejs/biome lint --write ./src",
+    "format": "npx @biomejs/biome format --write ./src",
+    "check": "npx @biomejs/biome check --write ./src"
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -37,6 +40,7 @@
     "printWidth": 120
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.0",
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.1",
     "ts-node": "^10.9.2",
